@@ -8,17 +8,22 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false  # Ponemos false para evitar conflictos con rutas automáticas
+          lower-case-service-id: true
       routes:
-        - id: usuarios-route
-          uri: lb://usuario
-          predicates:
-            - Path=/usuario/**
-
         - id: reservas-route
-          uri: lb://reservas
+          uri: lb://reservas-service     # <--- CORREGIDO: Coincide con spring.application.name
           predicates:
             - Path=/reservas/**
+          filters:
+            - StripPrefix=1              # <--- LA SOLUCIÓN: Elimina "/reservas" antes de enviar
+
+        - id: usuarios-route
+          uri: lb://usuario-service              # Verifica si tu servicio se llama "usuario" o "usuario-service"
+          predicates:
+            - Path=/usuario/**
+          filters:
+            - StripPrefix=1              # <--- Agregado también aquí por seguridad
 
 eureka:
   client:
