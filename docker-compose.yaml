@@ -1,0 +1,80 @@
+services:
+  reservas-db:
+    image: mysql:8.0
+    container_name: elbuensabor_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootroot
+      MYSQL_DATABASE: elbuensabor_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - elbuensabor_network
+
+  usuarios-db:
+    image: postgres
+    container_name: elbuensabor_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: elbuensabor_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # <--- Agregado (antes faltaba)
+    ports:
+      - "5532:5432"
+    networks:
+      - elbuensabor_network
+
+  discovery:
+    build:
+      context: ./discovery
+      dockerfile: dockerfile
+    container_name: discovery_server
+    ports:
+      - "8761:8761"
+    networks:
+      - elbuensabor_network
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: dockerfile
+    container_name: gateway_server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery
+    networks:
+      - elbuensabor_network
+
+  reservas:
+    build:
+      context: ./reservas
+      dockerfile: dockerfile
+    container_name: reservas_service
+    depends_on:
+      - reservas-db
+      - discovery
+    networks:
+      - elbuensabor_network
+
+  usuarios:
+    build:
+      context: ./usuario
+      dockerfile: dockerfile
+    container_name: usuarios_service
+    depends_on:
+      - usuarios-db
+      - discovery
+    networks:
+      - elbuensabor_network
+
+volumes:
+  postgres_data:
+  mysql_data:
+
+networks:
+  elbuensabor_network:
+    driver: bridge
