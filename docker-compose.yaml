@@ -20,6 +20,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: elbuensabor_db
+      PGDATA: /var/lib/postgresql/data  # <--- AGREGA ESTA LÍNEA
     volumes:
       - postgres_data:/var/lib/postgresql/data # <--- Agregado (antes faltaba)
     ports:
